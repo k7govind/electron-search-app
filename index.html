@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Text Search Tool</title>
+</head>
+
+<body>
+  <h2>Search Text in File or Folder</h2>
+
+  <input type="text" id="searchInput" placeholder="Enter text to search" /><br /><br />
+
+  <h3>🔍 Search in Single File</h3>
+  <button id="fileBtn">Select File</button>
+  <button id="searchFileBtn">Search in File</button>
+  <p id="fileResult"></p>
+
+  <h3>📂 Search in Folder</h3>
+  <button id="folderBtn">Select Folder</button>
+  <button id="searchFolderBtn">Search in Folder</button>
+  <div id="folderResult"></div>
+
+  <script>
+    let filePath = null;
+    let folderPath = null;
+
+    document.getElementById('fileBtn').onclick = async () => {
+      filePath = await window.api.selectFile();
+      document.getElementById('fileResult').textContent = filePath
+        ? `Selected file: ${filePath}`
+        : 'No file selected.';
+    };
+
+    document.getElementById('searchFileBtn').onclick = async () => {
+      const searchString = document.getElementById('searchInput').value.trim();
+      if (!filePath || !searchString) {
+        alert('Select a file and enter a string.');
+        return;
+      }
+      const result = await window.api.searchInFile(filePath, searchString);
+      document.getElementById('fileResult').textContent = result;
+    };
+
+    document.getElementById('folderBtn').onclick = async () => {
+      folderPath = await window.api.selectFolder();
+      document.getElementById('folderResult').innerHTML = folderPath
+        ? `<p>Selected folder: ${folderPath}</p>`
+        : '<p>No folder selected.</p>';
+    };
+
+    document.getElementById('searchFolderBtn').onclick = async () => {
+      const searchString = document.getElementById('searchInput').value.trim();
+      if (!folderPath || !searchString) {
+        alert('Select a folder and enter a string.');
+        return;
+      }
+      const result = await window.api.searchInFolder(folderPath, searchString);
+      document.getElementById('folderResult').innerHTML =
+        '<strong>Results:</strong><ul>' +
+        result.map(file => `<li>${file}</li>`).join('') +
+        '</ul>';
+    };
+  </script>
+</body>
+
+</html>
