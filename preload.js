@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("search-in-file", { filePath, searchString }),
   searchInFolder: (folderPath, searchString) =>
     ipcRenderer.invoke("search-in-folder", { folderPath, searchString }),
+  exportResults: (results) => ipcRenderer.invoke("export-results", results),
 });

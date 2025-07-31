@@ -13,11 +13,16 @@
   <h3>🔍 Search in Single File</h3>
   <button id="fileBtn">Select File</button>
   <button id="searchFileBtn">Search in File</button>
+  <label><input type="radio" name="searchMode" value="plain" checked> Plain</label>
+  <label><input type="radio" name="searchMode" value="case-insensitive"> Case-Insensitive</label>
+  <label><input type="radio" name="searchMode" value="regex"> Regex</label>
+  <button id="exportBtn" disabled>Export Results</button>
   <p id="fileResult"></p>
 
   <h3>📂 Search in Folder</h3>
   <button id="folderBtn">Select Folder</button>
   <button id="searchFolderBtn">Search in Folder</button>
+  <button id="exportBtn" disabled>Export Results</button>
   <div id="folderResult"></div>
 
   <script>
@@ -48,18 +53,37 @@
         : '<p>No folder selected.</p>';
     };
 
-    document.getElementById('searchFolderBtn').onclick = async () => {
-      const searchString = document.getElementById('searchInput').value.trim();
-      if (!folderPath || !searchString) {
-        alert('Select a folder and enter a string.');
-        return;
-      }
-      const result = await window.api.searchInFolder(folderPath, searchString);
-      document.getElementById('folderResult').innerHTML =
-        '<strong>Results:</strong><ul>' +
-        result.map(file => `<li>${file}</li>`).join('') +
-        '</ul>';
-    };
+
+    let lastSearchResults = [];
+
+      document.getElementById('searchFolderBtn').addEventListener('click', async () => {
+        const folderPath = await window.api.selectFolder();
+        const searchString = document.getElementById('searchText').value;
+        const searchMode = document.querySelector('input[name="searchMode"]:checked').value;
+        if (folderPath && searchString) {
+          const result = await window.api.searchInFolder(folderPath, searchString, searchMode);
+          lastSearchResults = Array.isArray(result) ? [] : result;
+
+          const output = Array.isArray(result)
+            ? result.map(file => `<li>${file}</li>`).join('')
+            : result.map(file =>
+              `<li><strong>${file.file}</strong><ul>` +
+              file.matches.map(m => `<li>Line ${m.number}: ${m.line}</li>`).join('') +
+              '</ul></li>'
+            ).join('');
+
+          document.getElementById('folderResult').innerHTML = `<strong>Results:</strong><ul>${output}</ul>`;
+          document.getElementById('exportBtn').disabled = lastSearchResults.length === 0;
+        }
+      });
+
+      document.getElementById('exportBtn').addEventListener('click', async () => {
+          if (lastSearchResults.length > 0) {
+            const message = await window.api.exportResults(lastSearchResults);
+            alert(message);
+          }
+        });
+
   </script>
 </body>
 
